@@ -34,36 +34,52 @@ class CameraDrone(Drone):
         Drone.__init__(self, altitude, xcoord, ycoord, heading)
         self.camera = Camera(width, height, angle, xAFOV, yAFOV)
 
-        def getTargetVector(self, targetXPixel, targetYPixel):
 
-            #calculates the Y component of the vector from the drone to the target
-            yComponent = self.h * np.tan(self.angle + (self.height / 2 - targetYPixel) * self.yAFOV / self.height)
+    def getTargetVector(self, targetXPixel, targetYPixel):
 
-            #calculates the Y component of the vector from the drone to the centre of the camera frame
-            yComponentToCentreFrame = self.h * np.tan(self.angle)
+        #calculates the Y component of the vector from the drone to the target
+        yComponent = self.h * np.tan(self.angle + (self.height / 2 - targetYPixel) * self.yAFOV / self.height)
 
-            #calculates the distance from the drone to the centre of the camera frame
-            distanceToCentreFrame = np.sqrt(self.h ** 2 + yComponentToCentreFrame ** 2)
+        #calculates the Y component of the vector from the drone to the centre of the camera frame
+        yComponentToCentreFrame = self.h * np.tan(self.angle)
 
-            #calculates the X component of the vector from the drone to the target
-            xComponent = distanceToCentreFrame * np.tan((targetXPixel - self.width / 2) * self.xAFOV / self.width)
+        #calculates the distance from the drone to the centre of the camera frame
+        distanceToCentreFrame = np.sqrt(self.h ** 2 + yComponentToCentreFrame ** 2)
 
-            #returns the components as a vector
-            return np.array([xComponent], [yComponent])
+        #calculates the X component of the vector from the drone to the target
+        xComponent = distanceToCentreFrame * np.tan((targetXPixel - self.width / 2) * self.xAFOV / self.width)
+
+        #returns the components as a vector
+        return np.array([xComponent], [yComponent])
+    
+    def globalizeTargetVector(self, targetVector):
+
+        #takes a vector from the drone to the target in the drone's frame of reference and returns
+        #a vector from the drone to the target with the y axis aligned with north and the x axis aligned with east
+
+        #create a trasnformation matrix to rotate the vector using the drone's heading
+        transformationMatrix = np.array([np.cos(self.heading), np.sin(self.heading)], [-np.sin(self.heading), np.cos(self.heading)])
         
-        def globalizeTargetVector(self, targetVector):
+        #multiply the vector by the transformation matrix and return value
+        return np.matmul(transformationMatrix, targetVector)
+    
+    def targetCoords(self, globalTargetVector):
 
-            #takes a vector from the drone to the target in the drone's frame of reference and returns
-            #a vector from the drone to the target with the y axis aligned with north and the x axis aligned with east
+        #convert target vector into GPS offsets based on Williams' Aviation Forumlae
+        EARTH_RADIUS = 6378137
 
-            #create a trasnformation matrix to rotate the vector using the drone's heading
-            transformationMatrix = np.array([np.cos(self.heading), np.sin(self.heading)], [-np.sin(self.heading), np.cos(self.heading)])
-            
-            #multiply the vector by the transformation matrix and return value
-            return np.matmul(transformationMatrix, targetVector)
+        #calculate the latitude offset
+        latOffset = globalTargetVector[1] / EARTH_RADIUS
+
+        #calculate the longitude offset
+        lonOffset = globalTargetVector[0] / (EARTH_RADIUS * np.cos(np.pi * self.x / 180))
+
+        #add offsets to drone's GPS coordinates
+        targetLat = self.x + latOffset
+        targetLon = self.y + lonOffset
+
+        #return target coordinates as an array in [longitude, latitude] format
         
-
-
-        
+        return np.array([targetLon, targetLat])
 
 
