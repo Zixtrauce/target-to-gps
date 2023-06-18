@@ -85,17 +85,17 @@ class CameraDrone(Drone):
 
 # sample usage
 
-    # create a drone with a camera
-    #drone = CameraDrone(100, -122.757813, 49.289074, 30, 1920, 1080, 60, 70, 40)
+# create a drone with a camera
+drone = CameraDrone(500, -122.7584068, 49.2892931, 300, 1920, 1080, 60, 70, 40)
 
-    # get the vector from the drone to a target at pixel (100, 100)
-    #targetVector = drone.getTargetVector(100, 100)
+# get the vector from the drone to a target at pixel
+targetVector = drone.getTargetVector(0, 0)
 
-    # convert the vector to the drone's frame of reference to a global vector
-    #globalTargetVector = drone.globalizeTargetVector(targetVector)
+# convert the vector to the drone's frame of reference to a global vector
+globalTargetVector = drone.globalizeTargetVector(targetVector)
 
-    # convert the global vector to GPS coordinates
-    #targetCoords = drone.targetCoords(globalTargetVector)
+# convert the global vector to GPS coordinates
+targetCoords = drone.targetCoords(globalTargetVector)
 
-    # print the GPS coordinates
-    #print(targetCoords)
+# print the GPS coordinates
+print(targetCoords)
